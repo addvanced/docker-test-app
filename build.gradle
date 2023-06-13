@@ -5,10 +5,21 @@ plugins {
 }
 
 group = 'addvanced'
-version = '1.0.0'
+version = '1.2.0'
 sourceCompatibility = JavaVersion.VERSION_17
 
-jar.enabled = false
+tasks.named("bootBuildImage") {
+	imageName = "${project.group}/${rootProject.name}:${project.version}"
+	tags = ["${project.group}/${rootProject.name}:${project.version}", "${project.group}/${rootProject.name}:latest"]
+
+	publish = true
+	docker {
+		publishRegistry {
+			username = "${DOCKER_USERNAME}"
+			password = "${DOCKER_TOKEN}"
+		}
+	}
+}
 
 configurations {
 	compileOnly {
