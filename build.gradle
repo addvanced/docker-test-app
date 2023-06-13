@@ -8,15 +8,21 @@ group = 'addvanced'
 version = '1.2.0'
 sourceCompatibility = JavaVersion.VERSION_17
 
+ext {
+	imageVersion = System.getenv('IMAGE_VERSION')
+	dockerUser = System.getenv('DOCKER_USERNAME')
+	dockerToken = System.getenv('DOCKER_TOKEN')
+}
+
 tasks.named("bootBuildImage") {
-	imageName = "${project.group}/${rootProject.name}:${project.version}"
-	tags = ["${project.group}/${rootProject.name}:${project.version}", "${project.group}/${rootProject.name}:latest"]
+	imageName = "${project.group}/${rootProject.name}:${imageVersion}"
+	tags = ["${project.group}/${rootProject.name}:${imageVersion}", "${project.group}/${rootProject.name}:latest"]
 
 	publish = true
 	docker {
 		publishRegistry {
-			username = "${DOCKER_USERNAME}"
-			password = "${DOCKER_TOKEN}"
+			username = "${dockerUser}"
+			password = "${dockerToken}"
 		}
 	}
 }
