@@ -40,10 +40,12 @@ jobs:
           ./gradlew clean bootBuildImage --imageName="$image_name" --quiet
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
 
-      - name: Publish to DigitalOcean Registry
+      - name: Prepare DigitalOcean CLI (doctl)
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
+
+      - name: Publish to DigitalOcean Registry
         env:
           IMAGE_GROUP: ${{ env.IMAGE_GROUP }}
           REPO_NAME: ${{ github.event.repository.name }}
