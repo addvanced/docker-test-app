@@ -1,4 +1,4 @@
-name: Build
+name: Build and Push Docker Image to DO Registry
 
 on:
   release:
@@ -12,20 +12,17 @@ env:
   IMAGE_VERSION: ${{ github.ref_name }}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+
+  prepare:
+    name: Prepare Docker Build
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Remove version-prefix from Release version tag
-        run: echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
-
-      - name: Current variables
+      - name: Prepare Variables
         run: |
+          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
           echo "IMAGE_NAME: $IMAGE_NAME"
           echo "IMAGE_VERSION: $IMAGE_VERSION"
-
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Setup DigitalOcean CLI
         uses: digitalocean/action-doctl@v2
@@ -39,17 +36,27 @@ jobs:
           distribution: temurin
           cache: gradle
 
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-22.04
+    needs: prepare
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to DigitalOcean Registry
+        run: doctl registry login
+
       - name: Build Docker Image
         id: build-image
         run: |
           echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
           ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet
 
-      - name: Publish to DigitalOcean Registry
-        run: |
-          echo "Logging into DigitalOcean Container Registry ..."
-          doctl registry login
-          echo "Pushing $IMAGE_NAME:$IMAGE_VERSION to Container Registry ..."
-          docker push $IMAGE_NAME:$IMAGE_VERSION
-          echo "Tagging $IMAGE_NAME:$IMAGE_VERSION with 'latest' and pushing $IMAGE_NAME:latest to Container Registry ..."
-          docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest && docker push $IMAGE_NAME:latest
+#      - name: Publish to DigitalOcean Registry
+#        run: |
+#          echo "Pushing $IMAGE_NAME:$IMAGE_VERSION to Container Registry ..."
+#          docker push $IMAGE_NAME:$IMAGE_VERSION
+#          echo "Tagging $IMAGE_NAME:$IMAGE_VERSION with 'latest' and pushing $IMAGE_NAME:latest to Container Registry ..."
+#          docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest && docker push $IMAGE_NAME:latest
