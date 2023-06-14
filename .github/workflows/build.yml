@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-  IMAGE_VERSION: ${{ github.ref_name }}
+  VERSION_TAG: ${{ github.ref_name }}
 
 jobs:
   prepare:
@@ -18,15 +18,21 @@ jobs:
 
     steps:
       - name: Prepare Variables
+        id: prepare-vars
         run: |
-          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
+          echo "version=${VERSION_TAG#v}" >> $GITHUB_OUTPUT
           echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "IMAGE_VERSION: $IMAGE_VERSION"
+          echo "VERSION: $version"
+    outputs:
+      version: ${{ steps.prepare-vars.outputs.version }}
 
   build:
     name: Build Docker Image
     runs-on: ubuntu-22.04
     needs: prepare
+
+    env:
+      IMAGE_VERSION: ${{ needs.prepare.outputs.version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +61,10 @@ jobs:
   push-version:
     name: Push Docker Image to DigitalOcean Registry
     runs-on: ubuntu-22.04
-    needs: build
+    needs: [prepare, build]
+
+    env:
+      IMAGE_VERSION: ${{ needs.prepare.outputs.version }}
 
     steps:
       - name: Load Docker Image Artifact
