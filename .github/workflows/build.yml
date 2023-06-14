@@ -19,7 +19,6 @@ jobs:
 
     steps:
       - name: Test
-        env:
         run: |
           echo "Version: $IMAGE_VERSION, Image_Version: ${IMAGE_VERSION#v}"
 
