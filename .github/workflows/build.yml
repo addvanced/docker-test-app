@@ -39,6 +39,9 @@ jobs:
         with:
           token: ${{ secrets.DO_TOKEN }}
 
+      - name: Login to DigitalOcean Registry
+        run: doctl registry login
+
       - name: Build Docker Image
         run: |
           echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
