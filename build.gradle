@@ -9,6 +9,7 @@ version = '1.2.0'
 sourceCompatibility = JavaVersion.VERSION_17
 
 ext {
+	imageGroup = System.getenv("IMAGE_GROUP")
 	imageVersion = System.getenv('IMAGE_VERSION')
 	dockerUser = System.getenv('DOCKER_USERNAME')
 	dockerToken = System.getenv('DOCKER_TOKEN')
@@ -17,8 +18,8 @@ ext {
 tasks.named("bootBuildImage") {
 	builder = "paketobuildpacks/builder-jammy-base"
 
-	imageName = "${project.group}/${rootProject.name}"
-	tags = ["${project.group}/${rootProject.name}:${imageVersion}"]
+	imageName = "${imageGroup}/${rootProject.name}"
+	tags = ["${imageGroup}/${rootProject.name}:${imageVersion}"]
 
 	buildCache {
 		volume {
