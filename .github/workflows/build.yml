@@ -12,8 +12,8 @@ env:
   IMAGE_VERSION: ${{ github.ref_name }}
 
 jobs:
-  build-push:
-    name: Build & Push Docker Image
+  prepare:
+    name: Prepare for Docker Image Build & Push
     runs-on: ubuntu-22.04
 
     steps:
@@ -23,33 +23,97 @@ jobs:
           echo "IMAGE_NAME: $IMAGE_NAME"
           echo "IMAGE_VERSION: $IMAGE_VERSION"
 
-      - name: Checkout code
-        uses: actions/checkout@v3
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-22.04
 
-      - name: Setup JDK
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java 17 JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: temurin
-          cache: gradle
+          distribution: 'liberica'
+          check-latest: true
+          cache: 'gradle'
+
+      - name: Build Docker Image
+        id: build-image
+        run: |
+          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
+          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
+          echo "Saving docker image ..."
+          docker save $IMAGE_NAME:$IMAGE_VERSION | gzip > docker-image.tar.gz
+
+      - name: Persist Docker Image Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: docker-image.tar.gz
+
+  push-version:
+    name: Push Docker Image to DigitalOcean Registry
+    runs-on: ubuntu-22.04
+    needs: build
+
+    steps:
+      - name: Load Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
 
       - name: Setup DigitalOcean CLI
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
 
-      - name: Build Docker Image
-        id: build-image
+      - name: Load Docker Image
         run: |
-          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
-          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet
+          echo "Loading Docker image $IMAGE_NAME:$IMAGE_VERSION ..."
+          gunzip -c docker-image.tar.gz | docker load
+          rm -f docker-image.tar.gz
 
       - name: Login to DigitalOcean Registry
         run: doctl registry login
 
-#      - name: Publish to DigitalOcean Registry
-#        run: |
-#          echo "Pushing $IMAGE_NAME:$IMAGE_VERSION to Container Registry ..."
-#          docker push $IMAGE_NAME:$IMAGE_VERSION
-#          echo "Tagging $IMAGE_NAME:$IMAGE_VERSION with 'latest' and pushing $IMAGE_NAME:latest to Container Registry ..."
-#          docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest && docker push $IMAGE_NAME:latest
+      - name: Pushing Docker Image to DigitalOcean Registry
+        run: docker push $IMAGE_NAME:$IMAGE_VERSION
+
+  push-latest:
+    name: Push Docker Image to DigitalOcean Registry
+    runs-on: ubuntu-22.04
+    needs: build
+
+    steps:
+      - name: Load Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+
+      - name: Setup DigitalOcean CLI
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Load Docker Image
+        run: |
+          echo "Loading Docker image $IMAGE_NAME:$IMAGE_VERSION ..."
+          gunzip -c docker-image.tar.gz | docker load
+          rm -f docker-image.tar.gz
+
+      - name: Login to DigitalOcean Registry
+        run: doctl registry login
+
+      - name: Pushing Docker Image with 'latest'-tag to DigitalOcean Registry
+        run: docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest && docker push $IMAGE_NAME:latest
+
+  cleanup:
+    name: Clean-up artifacts
+    runs-on: ubuntu-22.04
+    needs: [push-version, push-latest]
+
+    steps:
+      - name: Delete Docker Image artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: docker-image
