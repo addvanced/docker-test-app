@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-  VERSION: ${{ github.ref_name }}
+  IMAGE_VERSION: ${{ github.ref_name }}
 
 jobs:
 
@@ -20,9 +20,8 @@ jobs:
     steps:
       - name: Test
         env:
-          IMAGE_VERSION: ${VERSION#v}
         run: |
-          echo "Version: $VERSION, Image_Version: $IMAGE_VERSION"
+          echo "Version: $IMAGE_VERSION, Image_Version: ${IMAGE_VERSION#v}"
 
 #      - uses: actions/checkout@v3
 #      - name: Setup Java 17 JDK
