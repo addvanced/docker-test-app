@@ -24,7 +24,7 @@ jobs:
           imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
           echo "imageName: $imageName"
           echo "version: $version"
-          echo "cleanVersion: ${$version#v}"
+          echo "cleanVersion: ${version#v}"
           echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
           echo "IMAGE_NAME_LATEST=${IMAGE_NAME}:latest" >> $GITHUB_ENV
           echo "IMAGE_NAME_VERSIONED=${IMAGE_NAME}:${IMAGE_VERSION#v}" >> $GITHUB_ENV
