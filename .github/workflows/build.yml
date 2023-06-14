@@ -23,19 +23,18 @@ jobs:
           echo "REGISTRY: REGISTRY"
           echo "REPO_NAME: $REPO_NAME"
           echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "IMAGE_VERSION: IMAGE_VERSION"
+          echo "IMAGE_VERSION: $IMAGE_VERSION"
 
       - name: Remove v-prefix from Tag Version
         run: |
-          VERSION=${IMAGE_VERSION#v}
-          echo "IMAGE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
 
       - name: Current variables
         run: |
           echo "REGISTRY: REGISTRY"
           echo "REPO_NAME: $REPO_NAME"
           echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "IMAGE_VERSION: IMAGE_VERSION"
+          echo "IMAGE_VERSION: $IMAGE_VERSION"
 
 #      - name: Checkout code
 #        uses: actions/checkout@v3
