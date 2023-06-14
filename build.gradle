@@ -15,8 +15,21 @@ ext {
 }
 
 tasks.named("bootBuildImage") {
-	imageName = "${project.group}/${rootProject.name}:${imageVersion}"
-	tags = ["${project.group}/${rootProject.name}:${imageVersion}", "${project.group}/${rootProject.name}:latest"]
+	builder = "paketobuildpacks/builder-jammy-base"
+
+	imageName = "${project.group}/${rootProject.name}"
+	tags = ["${project.group}/${rootProject.name}:${imageVersion}"]
+
+	buildCache {
+		volume {
+			name = "cache-${rootProject.name}.build"
+		}
+	}
+	launchCache {
+		volume {
+			name = "cache-${rootProject.name}.launch"
+		}
+	}
 
 	publish = true
 	docker {
