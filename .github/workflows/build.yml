@@ -32,20 +32,20 @@ jobs:
           check-latest: true
           cache: 'gradle'
 
-      - name: Setup DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
+#      - name: Setup DigitalOcean CLI
+#        uses: digitalocean/action-doctl@v2
+#        with:
+#          token: ${{ secrets.DO_TOKEN }}
 
-      - name: Login to DigitalOcean Registry
-        run: doctl registry login
+#      - name: Login to DigitalOcean Registry
+#        run: doctl registry login
 
       - name: Build Docker Image
         run: |
           echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
           ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
 
-      - name: Tag Docker Image with 'latest' and Push to DO Registry
-        run: |
-          docker tag "$IMAGE_NAME:$IMAGE_VERSION" "$IMAGE_NAME":latest
-          docker push "$IMAGE_NAME"
+#      - name: Tag Docker Image with 'latest' and Push to DO Registry
+#        run: |
+#          docker tag "$IMAGE_NAME:$IMAGE_VERSION" "$IMAGE_NAME":latest
+#          docker push "$IMAGE_NAME"
