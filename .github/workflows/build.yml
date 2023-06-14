@@ -18,9 +18,12 @@ jobs:
       IMAGE_VERSION: ${{ github.ref_name }}
 
     steps:
+      - name: Prepare Version Variable
+        run: echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
+
       - name: Test
         run: |
-          echo "Version: $IMAGE_VERSION, Image_Version: ${IMAGE_VERSION#v}"
+          echo "Image version: $IMAGE_VERSION"
 
 #      - uses: actions/checkout@v3
 #      - name: Setup Java 17 JDK
