@@ -7,11 +7,20 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
+env:
+  IMAGE_GROUP: ${{ vars.IMAGE_GROUP }}
+  REPO_NAME: ${{ github.event.repository.name }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Current variables
+        run: |
+          echo "IMAGE_GROUP: $IMAGE_GROUP"
+          echo "REPO_NAME: $REPO_NAME"
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -30,10 +39,8 @@ jobs:
       - name: Build Docker Image
         id: build-image
         env:
-          IMAGE_GROUP: ${{ env.IMAGE_GROUP }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-          REPO_NAME: ${{ github.event.repository.name }}
           IMAGE_VERSION: ${{ steps.extract-version-tag.outputs.version_tag }}
         run: |
           image_name=registry.digitalocean.com/$IMAGE_GROUP/$REPO_NAME:$IMAGE_VERSION
@@ -47,8 +54,6 @@ jobs:
 
       - name: Publish to DigitalOcean Registry
         env:
-          IMAGE_GROUP: ${{ env.IMAGE_GROUP }}
-          REPO_NAME: ${{ github.event.repository.name }}
           IMAGE_NAME: ${{ steps.build-image.outputs.image_name }}
         run: |
           doctl registry login
