@@ -12,9 +12,8 @@ env:
   IMAGE_VERSION: ${{ github.ref_name }}
 
 jobs:
-
-  prepare:
-    name: Prepare Docker Build
+  build-push:
+    name: Build & Push Docker Image
     runs-on: ubuntu-22.04
 
     steps:
@@ -39,20 +38,14 @@ jobs:
         with:
           token: ${{ secrets.DO_TOKEN }}
 
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-22.04
-    needs: prepare
-
-    steps:
-      - name: Login to DigitalOcean Registry
-        run: doctl registry login
-
       - name: Build Docker Image
         id: build-image
         run: |
           echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
           ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet
+
+      - name: Login to DigitalOcean Registry
+        run: doctl registry login
 
 #      - name: Publish to DigitalOcean Registry
 #        run: |
