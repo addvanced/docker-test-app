@@ -10,7 +10,7 @@ on:
 env:
   REGISTRY: ${{ vars.DO_REGISTRY }}
   REPO_NAME: ${{ github.event.repository.name }}
-  IMAGE_NAME_TEST: "$REGISTRY/$REPO_NAME"
+  IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
         run: |
           echo "REGISTRY: REGISTRY"
           echo "REPO_NAME: $REPO_NAME"
-          echo "IMAGE_NAME_TEST: $IMAGE_NAME_TEST"
+          echo "IMAGE_NAME: $IMAGE_NAME"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -48,17 +48,12 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-          IMAGE_VERSION: ${{ steps.extract-version-tag.outputs.version_tag }}
         run: |
-          image_name=$REGISTRY/$REPO_NAME:$IMAGE_VERSION
-          echo "image_name=$image_name" >> $GITHUB_OUTPUT
-          ./gradlew clean bootBuildImage --imageName="$image_name" --quiet
+          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:${{ steps.extract-version-tag.outputs.version_tag }}" --quiet
 
       - name: Publish to DigitalOcean Registry
-        env:
-          IMAGE_NAME: ${{ steps.build-image.outputs.image_name }}
         run: |
           doctl registry login
-          docker push $IMAGE_NAME
-          docker tag $IMAGE_NAME $REGISTRY/$REPO_NAME:latest
-          docker push $REGISTRY/$REPO_NAME:latest
+          docker push $IMAGE_NAME:${{ steps.extract-version-tag.outputs.version_tag }}
+          docker tag $IMAGE_NAME:${{ steps.extract-version-tag.outputs.version_tag }} $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
