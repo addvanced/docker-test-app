@@ -20,9 +20,10 @@ jobs:
     steps:
       - name: Prepare Image Version
         run: |
-          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
           echo "IMAGE_NAME: $IMAGE_NAME"
           echo "IMAGE_VERSION: $IMAGE_VERSION"
+          echo "IMAGE_VERSION CLEAN: ${IMAGE_VERSION#v}"
+#          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
 
 #      - uses: actions/checkout@v3
 #      - name: Setup Java 17 JDK
