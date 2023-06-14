@@ -21,33 +21,27 @@ jobs:
       - name: Prepare Version Variable
         run: echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
 
-      - name: Test
+      - uses: actions/checkout@v3
+      - name: Setup Java 17 JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'liberica'
+          check-latest: true
+          cache: 'gradle'
+
+      - name: Setup DigitalOcean CLI
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Login to DigitalOcean Registry
+        run: doctl registry login
+
+      - name: Build Docker Image
         run: |
-          echo "Image version: $IMAGE_VERSION"
-
-#      - uses: actions/checkout@v3
-#      - name: Setup Java 17 JDK
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'liberica'
-#          check-latest: true
-#          cache: 'gradle'
-
-#      - name: Setup DigitalOcean CLI
-#        uses: digitalocean/action-doctl@v2
-#        with:
-#          token: ${{ secrets.DO_TOKEN }}
-
-#      - name: Login to DigitalOcean Registry
-#        run: doctl registry login
-
-#      - name: Build Docker Image
-#        env:
-#          VERSION: ${IMAGE_VERSION#v}
-#        run: |
-#          echo "Building image $IMAGE_NAME:$VERSION ..."
-#          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
+          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
+          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
 
 #      - name: Tag Docker Image with 'latest' and Push to DO Registry
 #        run: |
