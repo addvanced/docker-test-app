@@ -20,11 +20,20 @@ jobs:
     steps:
       - name: Prepare Environment Variables
         run: |
+          version=${{ github.ref_name }}
+          imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
+          echo "imageName: $imageName"
+          echo "version: $version"
+          echo "cleanVersion: ${$version#v}"
           echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
+          echo "IMAGE_NAME_LATEST=${IMAGE_NAME}:latest" >> $GITHUB_ENV
           echo "IMAGE_NAME_VERSIONED=${IMAGE_NAME}:${IMAGE_VERSION#v}" >> $GITHUB_ENV
 
       - name: Test
         run: |
+          echo "Image Version: ${{ env.IMAGE_VERSION }}"
+          echo "Image Name: ${{ env.IMAGE_NAME }}"
+          echo "Image Name latest: ${{ env.IMAGE_NAME_LATEST }}"
           echo "Image Name versioned: ${{ env.IMAGE_NAME_VERSIONED }}"
 
 #      - uses: actions/checkout@v3
