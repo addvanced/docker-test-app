@@ -33,6 +33,11 @@ jobs:
           distribution: temurin
           cache: gradle
 
+      - name: Setup DigitalOcean CLI
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
       - name: Extract Version from Release Tag
         id: extract-version-tag
         run: |
@@ -46,13 +51,8 @@ jobs:
           IMAGE_VERSION: ${{ steps.extract-version-tag.outputs.version_tag }}
         run: |
           image_name=$REGISTRY/$REPO_NAME:$IMAGE_VERSION
-          ./gradlew clean bootBuildImage --imageName="$image_name" --quiet
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
-
-      - name: Prepare DigitalOcean CLI (doctl)
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
+          ./gradlew clean bootBuildImage --imageName="$image_name" --quiet
 
       - name: Publish to DigitalOcean Registry
         env:
