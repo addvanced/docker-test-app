@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-  IMAGE_VERSION: ${ ${{ github.ref_name }}#v }
+  VERSION: ${{ github.ref_name }}
 
 jobs:
 
@@ -18,12 +18,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Prepare Image Version
+      - name: Test
+        env:
+          IMAGE_VERSION: ${VERSION#v}
         run: |
-          echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "IMAGE_VERSION: $IMAGE_VERSION"
-          echo "IMAGE_VERSION CLEAN: ${IMAGE_VERSION#v}"
-#          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
+          echo "Version: $VERSION, Image_Version: $IMAGE_VERSION"
 
 #      - uses: actions/checkout@v3
 #      - name: Setup Java 17 JDK
@@ -43,8 +42,10 @@ jobs:
 #        run: doctl registry login
 
 #      - name: Build Docker Image
+#        env:
+#          VERSION: ${IMAGE_VERSION#v}
 #        run: |
-#          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
+#          echo "Building image $IMAGE_NAME:$VERSION ..."
 #          ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
 
 #      - name: Tag Docker Image with 'latest' and Push to DO Registry
