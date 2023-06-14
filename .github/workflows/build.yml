@@ -13,28 +13,18 @@ jobs:
     name: Build & Push Docker Image to DigitalOcean Registry
     runs-on: ubuntu-22.04
 
-    env:
-      IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-      IMAGE_VERSION: ${{ github.ref_name }}
-
     steps:
       - name: Prepare Environment Variables
         run: |
           version=${{ github.ref_name }}
-          imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-          echo "imageName: $imageName"
-          echo "version: $version"
-          echo "cleanVersion: ${version#v}"
-          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
-          echo "IMAGE_NAME_LATEST=${IMAGE_NAME}:latest" >> $GITHUB_ENV
-          echo "IMAGE_NAME_VERSIONED=${IMAGE_NAME}:${IMAGE_VERSION#v}" >> $GITHUB_ENV
+          imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}          
+          echo "IMAGE_NAME_VERSION=${imageName}:latest" >> $GITHUB_ENV
+          echo "IMAGE_NAME_LATEST=${imageName}:${version#v}" >> $GITHUB_ENV
 
       - name: Test
         run: |
-          echo "Image Version: ${{ env.IMAGE_VERSION }}"
-          echo "Image Name: ${{ env.IMAGE_NAME }}"
           echo "Image Name latest: ${{ env.IMAGE_NAME_LATEST }}"
-          echo "Image Name versioned: ${{ env.IMAGE_NAME_VERSIONED }}"
+          echo "Image Name versioned: ${{ env.IMAGE_NAME_VERSION }}"
 
 #      - uses: actions/checkout@v3
 #      - name: Setup Java 17 JDK
