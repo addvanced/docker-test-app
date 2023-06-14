@@ -22,14 +22,34 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - name: Extract Version from Tag
-        id: extract-version
+      - name: Extract Version from Release Tag
+        id: extract-version-tag
         run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "version_tag=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Run Gradle Command
+      - name: Build Docker Image
+        id: build-image
         env:
+          IMAGE_GROUP: ${{ secrets.IMAGE_GROUP }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-          IMAGE_VERSION: ${{ steps.extract-version.outputs.version }}
-        run: ./gradlew clean bootBuildImage
+          REPO_NAME: ${{ github.event.repository.name }}
+          IMAGE_VERSION: ${{ steps.extract-version-tag.outputs.version_tag }}
+        run: |
+          image_name=registry.digitalocean.com/$IMAGE_GROUP/$REPO_NAME:$IMAGE_VERSION
+          ./gradlew clean bootBuildImage --imageName="$image_name" --quiet
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+
+      - name: Publish to DigitalOcean Registry
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+        env:
+          IMAGE_GROUP: ${{ env.IMAGE_GROUP }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          IMAGE_NAME: ${{ steps.build-image.outputs.image_name }}
+        run: |
+          doctl registry login
+          docker push $IMAGE_NAME
+          docker tag $IMAGE_NAME registry.digitalocean.com/$IMAGE_GROUP/$REPO_NAME:latest
+          docker push registry.digitalocean.com/$IMAGE_GROUP/$REPO_NAME:latest
