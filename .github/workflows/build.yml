@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-  IMAGE_VERSION: ${{ github.ref_name }}
+  IMAGE_VERSION: ${ ${{ github.ref_name }}#v }
 
 jobs:
 
