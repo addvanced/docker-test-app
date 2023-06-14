@@ -9,32 +9,22 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-  VERSION_TAG: ${{ github.ref_name }}
+  IMAGE_VERSION: ${{ github.ref_name }}
 
 jobs:
-  prepare:
-    name: Prepare for Docker Image Build & Push
+
+  build-push:
+    name: Build & Push Docker Image to DigitalOcean Registry
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Prepare Variables
-        id: prepare-vars
+
+      - name: Prepare Image Version
         run: |
-          echo "version=${VERSION_TAG#v}" >> $GITHUB_OUTPUT
+          echo "IMAGE_VERSION=${IMAGE_VERSION#v}" >> $GITHUB_ENV
           echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "VERSION: $version"
-    outputs:
-      version: ${{ steps.prepare-vars.outputs.version }}
+          echo "IMAGE_VERSION: $IMAGE_VERSION"
 
-  build:
-    name: Build Docker Image
-    runs-on: ubuntu-22.04
-    needs: prepare
-
-    env:
-      IMAGE_VERSION: ${{ needs.prepare.outputs.version }}
-
-    steps:
       - uses: actions/checkout@v3
       - name: Setup Java 17 JDK
         uses: actions/setup-java@v3
@@ -44,86 +34,18 @@ jobs:
           check-latest: true
           cache: 'gradle'
 
+      - name: Setup DigitalOcean CLI
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
       - name: Build Docker Image
-        id: build-image
         run: |
           echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
           ./gradlew clean bootBuildImage --imageName="$IMAGE_NAME:$IMAGE_VERSION" --quiet --no-daemon
-          echo "Saving docker image ..."
-          docker save $IMAGE_NAME:$IMAGE_VERSION | gzip > docker-image.tar.gz
 
-      - name: Persist Docker Image Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-image
-          path: docker-image.tar.gz
+      - name: Tag Docker Image with 'latest'
+        run: docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest
 
-  push-version:
-    name: Push Docker Image to DigitalOcean Registry
-    runs-on: ubuntu-22.04
-    needs: [prepare, build]
-
-    env:
-      IMAGE_VERSION: ${{ needs.prepare.outputs.version }}
-
-    steps:
-      - name: Load Docker Image Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-image
-
-      - name: Setup DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
-
-      - name: Load Docker Image
-        run: |
-          echo "Loading Docker image $IMAGE_NAME:$IMAGE_VERSION ..."
-          gunzip -c docker-image.tar.gz | docker load
-          rm -f docker-image.tar.gz
-
-      - name: Login to DigitalOcean Registry
-        run: doctl registry login
-
-      - name: Pushing Docker Image to DigitalOcean Registry
-        run: docker push $IMAGE_NAME:$IMAGE_VERSION
-
-  push-latest:
-    name: Push Docker Image to DigitalOcean Registry
-    runs-on: ubuntu-22.04
-    needs: build
-
-    steps:
-      - name: Load Docker Image Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-image
-
-      - name: Setup DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
-
-      - name: Load Docker Image
-        run: |
-          echo "Loading Docker image $IMAGE_NAME:$IMAGE_VERSION ..."
-          gunzip -c docker-image.tar.gz | docker load
-          rm -f docker-image.tar.gz
-
-      - name: Login to DigitalOcean Registry
-        run: doctl registry login
-
-      - name: Pushing Docker Image with 'latest'-tag to DigitalOcean Registry
-        run: docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest && docker push $IMAGE_NAME:latest
-
-  cleanup:
-    name: Clean-up artifacts
-    runs-on: ubuntu-22.04
-    needs: [push-version, push-latest]
-
-    steps:
-      - name: Delete Docker Image artifact
-        uses: geekyeggo/delete-artifact@v2
-        with:
-          name: docker-image
+      - name: Push image to DigitalOcean Registry
+        run: docker push $IMAGE_NAME

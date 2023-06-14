@@ -15,7 +15,7 @@ ext {
 }
 
 tasks.named("bootBuildImage") {
-	builder = "paketobuildpacks/builder-jammy-base"
+	builder = "paketobuildpacks/builder-jammy-base:0.4.172"
 
 	buildCache {
 		volume {
@@ -27,14 +27,6 @@ tasks.named("bootBuildImage") {
 			name = "cache-${rootProject.name}.launch"
 		}
 	}
-
-	//publish = true
-	//docker {
-	//	publishRegistry {
-	//		username = "${dockerUser}"
-	//		password = "${dockerToken}"
-	//	}
-	//}
 }
 
 configurations {
