@@ -43,7 +43,7 @@ jobs:
           echo "Building image ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} ..."
           ./gradlew clean bootBuildImage --imageName="${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}" --quiet --no-daemon
 
-#      - name: Tag Docker Image with 'latest' and Push to DO Registry
-#        run: |
-#          docker tag "$IMAGE_NAME:$IMAGE_VERSION" "$IMAGE_NAME":latest
-#          docker push "$IMAGE_NAME"
+      - name: Tag Docker Image with 'latest' and Push to DO Registry
+        run: |
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}
