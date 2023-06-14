@@ -30,7 +30,7 @@ jobs:
       - name: Build Docker Image
         id: build-image
         env:
-          IMAGE_GROUP: ${{ secrets.IMAGE_GROUP }}
+          IMAGE_GROUP: ${{ env.IMAGE_GROUP }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
           REPO_NAME: ${{ github.event.repository.name }}
