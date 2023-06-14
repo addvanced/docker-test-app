@@ -8,7 +8,7 @@ public class TestController {
 
     @GetMapping
     public @ResponseBody String helloWorld() {
-        return "Hello there..";
+        return "Hello there, how are you?";
     }
 
     @GetMapping("/{name}")
