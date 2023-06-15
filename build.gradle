@@ -46,6 +46,11 @@ tasks.named("bootBuildImage") {
 		throw new GradleException("IMAGE_VERSION environment variable is not set or empty")
 	}
 
+	def testImageVersion = (System.getenv("REF_NAME")?:"").trim()
+	if(!testImageVersion.isEmpty()) {
+		println("REF_NAME: $testImageVersion")
+	}
+
 	builder = builderPackage
 	imageName = "${dockerRegistry}/${buildImageName}:${buildImageVersion}"
 	if (Boolean.parseBoolean((System.getenv("TAG_LATEST") ?: "false").trim())) {

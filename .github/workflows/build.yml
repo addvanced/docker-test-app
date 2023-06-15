@@ -17,13 +17,8 @@ jobs:
       - name: Prepare Environment Variables
         run: |
           version=${{ github.ref_name }}
-          imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-          echo "IMAGE_NAME=$imageName" >> $GITHUB_ENV
-          echo "IMAGE_VERSION=${version#v}" >> $GITHUB_ENV
-#          echo "IMAGE_NAME_LATEST=${imageName}:latest" >> $GITHUB_ENV
-#          echo "IMAGE_NAME_VERSION=${imageName}:${version#v}" >> $GITHUB_ENV
-#          echo "IMAGE_NAME_VERSION: ${{ env.IMAGE_NAME_VERSION }}"
-#          echo "IMAGE_NAME_LATEST: ${{ env.IMAGE_NAME_LATEST }}"
+          echo "VERSION=${version}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${version#v}" >> $GITHUB_ENV
 
       - uses: actions/checkout@v3
       - name: Setup Java 17 JDK
@@ -47,10 +42,11 @@ jobs:
           TAG_LATEST: ${{ vars.TAG_LATEST }}
           DOCKER_USERNAME: ${{ secrets.DO_TOKEN }}
           DOCKER_PASSWORD: ${{ secrets.DO_TOKEN }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
+          IMAGE_NAME: ${{ github.event.repository.name }}
+          IMAGE_VERSION: ${{ env.RELEASE_VERSION }}
+          REF_NAME: ${{ env.VERSION }}
         run: |
-          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
+          echo "Building image ${{ env.DOCKER_REGISTRY}}/${{ env.IMAGE_NAME}}:$IMAGE_VERSION ..."
           ./gradlew clean bootBuildImage --quiet --no-daemon
 #
 #      - name: Push version Docker Image to DigitalOcean Registry
