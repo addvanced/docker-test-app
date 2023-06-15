@@ -44,11 +44,10 @@ tasks.named("bootBuildImage") {
 		throw new GradleException("IMAGE_NAME environment variable, and rootProject name is empty.")
 	}
 
-	def imageVersion = (System.getenv("IMAGE_VERSION") ?: ("$project.version"?:"").trim()).trim()
+	def imageVersion = (System.getenv("IMAGE_VERSION") ?: ("$project.version"?:"").trim()).trim().replaceFirst(/^[vV]/, '')
 	if (imageVersion.isEmpty()) {
 		throw new GradleException("IMAGE_VERSION environment variable, and project version is not set or empty.")
 	}
-	imageVersion.replaceFirst(/^[vV]/, '')
 
 	imageName = "${dockerRegistry}/${buildImageName}:${imageVersion}"
 	if (Boolean.parseBoolean((System.getenv("TAG_LATEST") ?: "true").trim())) {

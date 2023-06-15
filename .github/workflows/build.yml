@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Docker Registry
+name: Build & Push Docker Image to Container Registry
 
 on:
   release:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-push:
-    name: Build & Push Docker Image to DigitalOcean Registry
+    name: Publish Image to Container Registry
     runs-on: ubuntu-22.04
 
     steps:
@@ -21,7 +21,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build and Push Docker Image to DO Registry
+      - name: Build & Push Image to Registry
         env:
           DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
