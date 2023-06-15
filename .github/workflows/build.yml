@@ -23,11 +23,11 @@ jobs:
 
       - name: Build & Push Image to Registry
         env:
-          DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_URL: ${{ vars.DO_REGISTRY_URL }} #Optional - Default: Docker Hub
+          DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY || '' }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME || '' }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD || '' }}
+          DOCKER_URL: ${{ vars.DOCKER_URL  || '' }} #Optional - Default: Docker Hub
+          BUILDER_PACKAGE: ${{ vars.BUILDER_PACKAGE || '' }} #Optional - Default: Spring Boot logic
           IMAGE_NAME: ${{ github.event.repository.name }} #Optional - Default: rootProject.name
-          IMAGE_VERSION: ${{ github.ref_name }} #Optional - Default: project.version
-          #BUILDER_PACKAGE: "paketobuildpacks/builder-jammy-base:0.4.172" #Optional - Default: Spring Boot logic
+          IMAGE_VERSION: ${{ github.ref_name || '' }} #Optional - Default: project.version
         run: ./gradlew clean bootBuildImage --quiet --no-daemon
