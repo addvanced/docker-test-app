@@ -64,8 +64,16 @@ tasks.named("bootBuildImage") {
 		password = dockerPassword
 	}
 
-	buildCache.volume.name = "cache-${rootProject.name}.build"
-	launchCache.volume.name = "cache-${rootProject.name}.launch"
+	buildCache {
+		volume {
+			name = "cache-${rootProject.name}.build"
+		}
+	}
+	launchCache {
+		volume {
+			name = "cache-${rootProject.name}.launch"
+		}
+	}
 }
 
 tasks.register('extractGitHubVersion') {
