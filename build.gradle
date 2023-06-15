@@ -9,22 +9,58 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
+
 springBoot {
 	buildInfo()
 }
 
 tasks.named("bootBuildImage") {
-	builder = "paketobuildpacks/builder-jammy-base:0.4.172"
-	buildCache {
-		volume {
-			name = "cache-${rootProject.name}.build"
-		}
+	def builderPackage = (System.getenv("BUILDER_PACKAGE") ?: "").trim()
+	if (builderPackage.isEmpty()) {
+		builderPackage = "paketobuildpacks/builder-jammy-base:0.4.172"
 	}
-	launchCache {
-		volume {
-			name = "cache-${rootProject.name}.launch"
-		}
+
+	// ### DigitalOcean Registry URL
+	def dockerRegistry = (System.getenv("DOCKER_REGISTRY") ?: "").trim()
+	if (dockerRegistry.isEmpty()) {
+		throw new GradleException("DOCKER_REGISTRY environment variable is not set or empty.")
 	}
+
+	def dockerUsername = (System.getenv("DOCKER_USERNAME") ?: "").trim()
+	if (dockerUsername.isEmpty()) {
+		throw new GradleException("DOCKER_USERNAME environment variable is not set or empty.")
+	}
+
+	def dockerPassword = (System.getenv("DOCKER_PASSWORD") ?: "").trim()
+	if (dockerPassword.isEmpty()) {
+		throw new GradleException("DOCKER_PASSWORD environment variable is not set or empty.")
+	}
+
+	def buildImageName = (System.getenv("IMAGE_NAME") ?: rootProject.name).trim()
+	if (buildImageName.isEmpty()) {
+		throw new GradleException("IMAGE_NAME environment variable is empty.")
+	}
+
+	def buildImageVersion = (System.getenv("IMAGE_VERSION") ?: "").trim()
+	if (buildImageVersion.isEmpty()) {
+		throw new GradleException("IMAGE_VERSION environment variable is not set or empty")
+	}
+
+	builder = builderPackage
+	imageName = "${dockerRegistry}/${buildImageName}:${buildImageVersion}"
+	if (Boolean.parseBoolean((System.getenv("TAG_LATEST") ?: "false").trim())) {
+		tags = ["${dockerRegistry}/${buildImageName}:latest"]
+	}
+
+	publish = true
+	docker.publishRegistry {
+		url = dockerRegistry
+		username = dockerUsername
+		password = dockerPassword
+	}
+
+	buildCache.volume.name = "cache-${rootProject.name}.build"
+	launchCache.volume.name = "cache-${rootProject.name}.launch"
 }
 
 tasks.register('extractGitHubVersion') {

@@ -18,10 +18,12 @@ jobs:
         run: |
           version=${{ github.ref_name }}
           imageName=${{ vars.DO_REGISTRY }}/${{ github.event.repository.name }}
-          echo "IMAGE_NAME_LATEST=${imageName}:latest" >> $GITHUB_ENV
-          echo "IMAGE_NAME_VERSION=${imageName}:${version#v}" >> $GITHUB_ENV
-          echo "IMAGE_NAME_VERSION: ${{ env.IMAGE_NAME_VERSION }}"
-          echo "IMAGE_NAME_LATEST: ${{ env.IMAGE_NAME_LATEST }}"
+          echo "IMAGE_NAME=$imageName" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${version#v}" >> $GITHUB_ENV
+#          echo "IMAGE_NAME_LATEST=${imageName}:latest" >> $GITHUB_ENV
+#          echo "IMAGE_NAME_VERSION=${imageName}:${version#v}" >> $GITHUB_ENV
+#          echo "IMAGE_NAME_VERSION: ${{ env.IMAGE_NAME_VERSION }}"
+#          echo "IMAGE_NAME_LATEST: ${{ env.IMAGE_NAME_LATEST }}"
 
       - uses: actions/checkout@v3
       - name: Setup Java 17 JDK
@@ -31,26 +33,33 @@ jobs:
           distribution: 'liberica'
           cache: 'gradle'
 
-      - name: Setup DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
+#      - name: Setup DigitalOcean CLI
+#        uses: digitalocean/action-doctl@v2
+#        with:
+#          token: ${{ secrets.DO_TOKEN }}
 
-      - name: Login to DigitalOcean Registry
-        run: doctl registry login --expiry-seconds=300
+#      - name: Login to DigitalOcean Registry
+#        run: doctl registry login --expiry-seconds=300
 
-      - name: Build Docker Image
+      - name: Build and Push Docker Image to DO Registry
+        env:
+          DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
+          TAG_LATEST: ${{ vars.TAG_LATEST }}
+          DOCKER_USERNAME: ${{ secrets.DO_TOKEN }}
+          DOCKER_PASSWORD: ${{ secrets.DO_TOKEN }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
         run: |
-          echo "Building image ${{ env.IMAGE_NAME_VERSION }} ..."
-          ./gradlew clean bootBuildImage --imageName="${{ env.IMAGE_NAME_VERSION }}" --quiet --no-daemon
+          echo "Building image $IMAGE_NAME:$IMAGE_VERSION ..."
+          ./gradlew clean bootBuildImage --quiet --no-daemon
+#
+#      - name: Push version Docker Image to DigitalOcean Registry
+#        run: docker push ${{ env.IMAGE_NAME_VERSION }}
 
-      - name: Push version Docker Image to DigitalOcean Registry
-        run: docker push ${{ env.IMAGE_NAME_VERSION }}
+#      - name: Tag 'latest' and push Docker Image to DigitalOcean Registry
+#        run: |
+#          docker tag  ${{ env.IMAGE_NAME_VERSION }} ${{ env.IMAGE_NAME_LATEST }}
+#          docker push ${{ env.IMAGE_NAME_LATEST }}
 
-      - name: Tag 'latest' and push Docker Image to DigitalOcean Registry
-        run: |
-          docker tag  ${{ env.IMAGE_NAME_VERSION }} ${{ env.IMAGE_NAME_LATEST }}
-          docker push ${{ env.IMAGE_NAME_LATEST }}
-
-      - name: Logout of DigitalOcean Registry
-        run: doctl registry logout
+#      - name: Logout of DigitalOcean Registry
+#        run: doctl registry logout
