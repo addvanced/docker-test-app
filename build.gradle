@@ -5,18 +5,16 @@ plugins {
 }
 
 group = 'addvanced'
-version = '1.2.0'
+version = '0.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
-ext {
-	imageGroup = System.getenv("IMAGE_GROUP")
-	dockerUser = System.getenv('DOCKER_USERNAME')
-	dockerToken = System.getenv('DOCKER_TOKEN')
+springBoot {
+	buildInfo()
 }
 
 tasks.named("bootBuildImage") {
 	builder = "paketobuildpacks/builder-jammy-base:0.4.172"
-
 	buildCache {
 		volume {
 			name = "cache-${rootProject.name}.build"
@@ -28,6 +26,12 @@ tasks.named("bootBuildImage") {
 		}
 	}
 }
+
+tasks.register('extractGitHubVersion') {
+	project.version = System.getenv('GITHUB_REF')?.replaceAll('refs/tags/v', '')?: project.version
+}
+
+compileJava.dependsOn extractGitHubVersion
 
 configurations {
 	compileOnly {
