@@ -46,7 +46,7 @@ tasks.named("bootBuildImage") {
 		throw new GradleException("IMAGE_VERSION environment variable is not set or empty")
 	}
 
-	def testImageVersion = (System.getenv("REF_NAME")?:"").trim()
+	def testImageVersion = (System.getenv("REF_NAME")?: "").trim()
 	if(!testImageVersion.isEmpty()) {
 		println("REF_NAME: $testImageVersion")
 	}

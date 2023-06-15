@@ -44,9 +44,9 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DO_TOKEN }}
           IMAGE_NAME: ${{ github.event.repository.name }}
           IMAGE_VERSION: ${{ env.RELEASE_VERSION }}
-          REF_NAME: ${{ env.VERSION }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          echo "Building image ${{ env.DOCKER_REGISTRY}}/${{ env.IMAGE_NAME}}:$IMAGE_VERSION ..."
+          echo "Building image ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} ..."
           ./gradlew clean bootBuildImage --quiet --no-daemon
 #
 #      - name: Push version Docker Image to DigitalOcean Registry
