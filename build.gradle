@@ -64,6 +64,14 @@ tasks.named("bootBuildImage") {
 			password = dockerPassword
 		}
 	}
+	if (Boolean.parseBoolean((System.getenv("CLEAN_CACHE") ?: "false").trim())) {
+		cleanCache = true
+	}
+	environment["BP_HEALTH_CHECKER_ENABLED"] = "true"
+	buildpacks = [
+			"urn:cnb:builder:paketo-buildpacks/java",
+			"gcr.io/paketo-buildpacks/health-checker:1.5.0"
+	]
 
 	buildCache {
 		volume {
